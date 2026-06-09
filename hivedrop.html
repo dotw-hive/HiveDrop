@@ -645,7 +645,18 @@ body.force-light {
   let themeMode  = 'dark';
   let emojiOpen  = false;
 
-  /* Security */
+  /* Restore saved username */
+  (function() {
+    let saved = localStorage.getItem('hivedrop_username');
+    if (saved) document.getElementById('username').value = saved;
+  })();
+
+  /* Save username on change */
+  document.getElementById('username').addEventListener('input', function() {
+    let val = this.value.trim().replace(/^@/, '');
+    if (val) localStorage.setItem('hivedrop_username', val);
+    else localStorage.removeItem('hivedrop_username');
+  });
   function sanitizeUrl(url) {
     let d; try { d = decodeURIComponent(url.trim()); } catch(e) { d = url.trim(); }
     if (/^(https?:|ipfs:|hive:)/i.test(d)) return escAttr(d);
