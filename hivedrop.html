@@ -4,419 +4,499 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HiveDrop — Hive Micro-Post Composer</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5' fill='%23e31337' opacity='0.15'/%3E%3Cpolygon points='15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5' stroke='%23e31337' stroke-width='1.5' fill='none'/%3E%3Ctext x='15' y='20' text-anchor='middle' font-family='serif' font-size='11' font-weight='600' fill='%23e31337'%3ED%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 30 30' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5' fill='%23FF6B35' opacity='0.2'/%3E%3Cpolygon points='15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5' stroke='%23FF6B35' stroke-width='1.5' fill='none'/%3E%3Ctext x='15' y='20' text-anchor='middle' font-family='serif' font-size='11' font-weight='800' fill='%23FF6B35'%3ED%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --hive-red:     #e31337;
-    --hive-accent:  #c41230;
-    --hive-success: #1a7a4a;
-    --hive-warn:    #b56a00;
+:root {
+  --signal:      #FF6B35;
+  --signal-dark: #E05520;
+  --success:     #00D084;
+  --warn:        #FFB800;
+  --danger:      #FF4444;
 
-    /* Light theme */
-    --bg:           #f7f5f2;
-    --surface:      #ffffff;
-    --surface-2:    #f0ede8;
-    --ink:          #1a1208;
-    --ink-2:        #5a5040;
-    --ink-3:        #9a8f80;
-    --border:       #e0d8cc;
-    --border-focus: var(--hive-red);
-  }
+  --bg:          #0E0F11;
+  --surface:     #17191D;
+  --surface-2:   #1E2026;
+  --surface-3:   #24272F;
+  --ink:         #F0F2F5;
+  --ink-2:       #A0A6B4;
+  --ink-3:       #6A707E;
+  --border:      #2A2D34;
+  --border-2:    #363B45;
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg:       #141010;
-      --surface:  #1e1612;
-      --surface-2:#281e18;
-      --ink:      #f2ede6;
-      --ink-2:    #a09080;
-      --ink-3:    #6a5a50;
-      --border:   #382820;
-    }
-  }
+  --snaps-color:   #FF6B35;
+  --threads-color: #C98A00;
+  --waves-color:   #00C4A0;
+}
 
-  body.force-light {
-    --bg:       #f7f5f2;
-    --surface:  #ffffff;
-    --surface-2:#f0ede8;
-    --ink:      #1a1208;
-    --ink-2:    #5a5040;
-    --ink-3:    #9a8f80;
-    --border:   #e0d8cc;
-  }
+html, body { height: 100%; }
 
-  body.force-dark {
-    --bg:       #141010;
-    --surface:  #1e1612;
-    --surface-2:#281e18;
-    --ink:      #f2ede6;
-    --ink-2:    #a09080;
-    --ink-3:    #6a5a50;
-    --border:   #382820;
-  }
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px 48px;
+}
 
-  html, body {
-    height: 100%;
-  }
+/* ── Load animation ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#app-header { animation: fadeUp 0.35s ease both; }
+#composer   { animation: fadeUp 0.35s ease 0.07s both; }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--ink);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    padding: 0 16px 40px;
-  }
+/* ── Header ── */
+#app-header {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 0 20px;
+}
 
-  /* ── Header ── */
-  #app-header {
-    width: 100%;
-    max-width: 560px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 0 24px;
-  }
+#app-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#app-logo svg { width: 26px; height: 26px; }
 
-  #app-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+#logo-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.5px;
+}
+#logo-text span { color: var(--signal); }
 
-  #app-logo svg { width: 28px; height: 28px; }
+#header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  #logo-text {
-    font-family: 'Syne', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--ink);
-    letter-spacing: -0.5px;
-  }
+#keychain-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-3);
+}
 
-  #logo-text span {
-    color: var(--hive-red);
-  }
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border-2);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.status-dot.ok  { background: var(--success); box-shadow: 0 0 5px rgba(0,208,132,0.5); }
+.status-dot.err { background: var(--danger); }
 
-  #header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+#theme-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 9px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-3);
+  transition: all 0.15s;
+}
+#theme-toggle:hover { border-color: var(--signal); color: var(--ink); }
 
-  #keychain-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-3);
-  }
+/* ── Composer card ── */
+#composer {
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: visible;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+}
 
-  .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--border);
-    flex-shrink: 0;
-    transition: background 0.3s;
-  }
-  .status-dot.ok  { background: var(--hive-success); }
-  .status-dot.err { background: var(--hive-red); }
+/* ── Platform bar ── */
+#platform-bar {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 6px 6px 0 0;
+}
 
-  #theme-toggle {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 4px 9px;
-    cursor: pointer;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-3);
-    transition: all 0.15s;
-  }
-  #theme-toggle:hover {
-    border-color: var(--hive-red);
-    color: var(--ink);
-  }
+#platform-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
 
-  /* ── Main card ── */
-  #composer {
-    width: 100%;
-    max-width: 560px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-  }
+#platform-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
 
-  /* ── Platform selector ── */
-  #platform-bar {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface-2);
-  }
+.platform-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.platform-pill:hover { border-color: var(--border-2); color: var(--ink); }
 
-  #platform-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 10px;
-  }
+.pill-accent {
+  width: 7px; height: 7px;
+  border-radius: 1px;
+  flex-shrink: 0;
+  opacity: 0.4;
+  transition: opacity 0.12s;
+}
+.platform-pill[data-platform="snaps"]   .pill-accent { background: var(--snaps-color); }
+.platform-pill[data-platform="threads"] .pill-accent { background: var(--threads-color); }
+.platform-pill[data-platform="waves"]   .pill-accent { background: var(--waves-color); }
 
-  #platform-pills {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
+.platform-pill[data-platform="snaps"].selected   { border-color: var(--snaps-color);   color: var(--snaps-color); }
+.platform-pill[data-platform="threads"].selected { border-color: var(--threads-color); color: var(--threads-color); }
+.platform-pill[data-platform="waves"].selected   { border-color: var(--waves-color);   color: var(--waves-color); }
+.platform-pill.selected .pill-accent { opacity: 1; }
 
-  .platform-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 7px 14px;
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    background: transparent;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--ink-2);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
+/* ── Container status ── */
+#container-status {
+  margin-top: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-3);
+  min-height: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+#container-status.ok  { color: var(--success); }
+#container-status.err { color: var(--danger); }
 
-  .platform-pill:hover {
-    border-color: var(--ink-2);
-    color: var(--ink);
-  }
+.spin { display: inline-block; animation: spinning 0.7s linear infinite; }
+@keyframes spinning { to { transform: rotate(360deg); } }
 
-  .platform-pill.selected {
-    background: var(--hive-red);
-    border-color: var(--hive-red);
-    color: #fff;
-  }
+/* ── Formatting toolbar ── */
+#fmt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
 
-  .platform-pill .pill-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    opacity: 0.7;
-  }
+.fmt-btn {
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 9px;
+  cursor: pointer;
+  color: var(--ink-2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.1s, color 0.1s;
+  line-height: 1;
+}
+.fmt-btn:hover { background: var(--surface-3); color: var(--ink); }
 
-  /* Container status indicator */
-  #container-status {
-    margin-top: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-3);
-    min-height: 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+.fmt-sep {
+  width: 1px; height: 14px;
+  background: var(--border);
+  margin: 0 3px;
+}
 
-  #container-status.ok    { color: var(--hive-success); }
-  #container-status.err   { color: var(--hive-red); }
-  #container-status.loading { color: var(--ink-3); }
+/* ── Emoji wrapper ── */
+#emoji-wrapper {
+  position: relative;
+  margin-left: auto;
+}
 
-  .spin {
-    display: inline-block;
-    animation: spin 0.8s linear infinite;
-    font-style: normal;
-  }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
+#emoji-btn {
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  transition: background 0.1s;
+}
+#emoji-btn:hover { background: var(--surface-3); }
 
-  /* ── Compose area ── */
-  #compose-area {
-    padding: 20px 20px 0;
-  }
+#emoji-picker {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  z-index: 200;
+  width: 320px;
+}
+#emoji-picker.open { display: block; }
 
-  #post-body {
-    width: 100%;
-    min-height: 140px;
-    max-height: 320px;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 16px;
-    line-height: 1.7;
-    color: var(--ink);
-    resize: none;
-    overflow-y: auto;
-  }
-  #post-body::placeholder { color: var(--ink-3); }
+#emoji-categories {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
 
-  /* ── Char counter ── */
-  #char-bar {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 8px 20px 14px;
-    gap: 8px;
-  }
+.emoji-cat-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 3px 6px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--ink-3);
+  transition: all 0.1s;
+}
+.emoji-cat-btn:hover,
+.emoji-cat-btn.active {
+  border-color: var(--border-2);
+  color: var(--ink);
+  background: var(--surface-3);
+}
 
-  #char-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-3);
-    transition: color 0.2s;
-  }
-  #char-count.warn { color: var(--hive-warn); }
-  #char-count.over { color: var(--hive-red); font-weight: 600; }
+#emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  max-height: 160px;
+  overflow-y: auto;
+}
 
-  #char-arc {
-    width: 20px; height: 20px;
-  }
+.emoji-cell {
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  padding: 3px;
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+  text-align: center;
+  transition: background 0.1s;
+}
+.emoji-cell:hover { background: var(--surface-3); }
 
-  /* ── Divider ── */
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 0 20px;
-  }
+/* ── Compose ── */
+#compose-area {
+  padding: 18px 18px 4px;
+}
 
-  /* ── Bottom row ── */
-  #bottom-row {
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+#post-body {
+  width: 100%;
+  min-height: 120px;
+  max-height: 280px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink);
+  resize: none;
+  overflow-y: auto;
+}
+#post-body::placeholder { color: var(--ink-3); }
 
-  #username {
-    flex: 1;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    background: var(--surface-2);
-    color: var(--ink);
-    outline: none;
-    transition: border-color 0.15s;
-    min-width: 0;
-  }
-  #username::placeholder { color: var(--ink-3); }
-  #username:focus { border-color: var(--hive-red); }
+/* ── Char bar ── */
+#char-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 6px 18px 14px;
+  gap: 7px;
+}
 
-  #drop-btn {
-    padding: 9px 22px;
-    background: var(--hive-red);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.15s, transform 0.1s, opacity 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    letter-spacing: 0.2px;
-  }
-  #drop-btn:hover:not(:disabled)  { background: var(--hive-accent); }
-  #drop-btn:active:not(:disabled) { transform: scale(0.97); }
-  #drop-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+#char-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-3);
+  transition: color 0.2s;
+}
+#char-display.warn { color: var(--warn); }
+#char-display.over { color: var(--danger); font-weight: 600; }
 
-  /* ── Keychain notice ── */
-  #kc-notice {
-    display: none;
-    margin: 0 16px 14px;
-    background: #fdf0f0;
-    border: 1px solid #f5c0c0;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #991020;
-    line-height: 1.6;
-  }
-  body.force-dark #kc-notice,
-  @media (prefers-color-scheme: dark) { #kc-notice {
-    background: #2a0e12;
-    border-color: #6a1020;
-    color: #f09090;
-  }}
-  #kc-notice a { color: var(--hive-red); }
+#char-arc { width: 18px; height: 18px; flex-shrink: 0; }
 
-  /* ── TX info ── */
-  #tx-info {
-    display: none;
-    margin: 0 16px 16px;
-    padding: 12px 14px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-2);
-    line-height: 1.7;
-  }
-  #tx-info a {
-    color: var(--hive-red);
-    text-decoration: none;
-  }
-  #tx-info a:hover { text-decoration: underline; }
+.divider { height: 1px; background: var(--border); }
 
-  /* ── Toast ── */
-  #toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 11px 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--ink);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.2s;
-    z-index: 9999;
-    max-width: 360px;
-    text-align: center;
-    opacity: 0;
-    pointer-events: none;
-  }
-  #toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-  #toast.success { border-color: #5ab87a; color: var(--hive-success); }
-  #toast.error   { border-color: var(--hive-red); color: var(--hive-red); }
+/* ── TX info ── */
+#tx-info {
+  display: none;
+  margin: 12px 14px 0;
+  padding: 10px 12px;
+  background: rgba(0,208,132,0.06);
+  border: 1px solid rgba(0,208,132,0.2);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--success);
+  line-height: 1.7;
+  position: relative;
+}
+#tx-info a { color: var(--signal); text-decoration: none; }
+#tx-info a:hover { text-decoration: underline; }
+#tx-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--success);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.5;
+  padding: 0;
+}
+#tx-close:hover { opacity: 1; }
 
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* ── Keychain notice ── */
+#kc-notice {
+  display: none;
+  margin: 12px 14px 0;
+  background: rgba(255,68,68,0.07);
+  border: 1px solid rgba(255,68,68,0.2);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #ff8070;
+  line-height: 1.6;
+}
+#kc-notice a { color: var(--signal); }
+
+/* ── Bottom row ── */
+#bottom-row {
+  padding: 12px 14px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#username {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  background: var(--surface-3);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+  min-width: 0;
+}
+#username::placeholder { color: var(--ink-3); }
+#username:focus { border-color: var(--signal); }
+
+#drop-btn {
+  padding: 8px 20px;
+  background: var(--signal);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s, opacity 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.2px;
+}
+#drop-btn:hover:not(:disabled)  { background: var(--signal-dark); }
+#drop-btn:active:not(:disabled) { transform: scale(0.97); }
+#drop-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: 5px;
+  padding: 10px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.6);
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), opacity 0.2s;
+  z-index: 9999;
+  max-width: 360px;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+#toast.success { border-color: var(--success); color: var(--success); }
+#toast.error   { border-color: var(--danger);  color: var(--danger); }
+
+/* ── Light theme ── */
+body.force-light {
+  --bg:       #F4F5F7;
+  --surface:  #FFFFFF;
+  --surface-2:#F0F1F4;
+  --surface-3:#E8EAEE;
+  --ink:      #0E0F11;
+  --ink-2:    #5A6070;
+  --ink-3:    #9AA0AE;
+  --border:   #D8DBE2;
+  --border-2: #C4C8D2;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
 </style>
 </head>
 <body>
 
-<!-- Header -->
 <div id="app-header">
   <div id="app-logo">
     <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <polygon points="15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5" fill="#e31337" opacity="0.12"/>
-      <polygon points="15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5" stroke="#e31337" stroke-width="1.5" fill="none"/>
-      <text x="15" y="20" text-anchor="middle" font-family="'Syne', sans-serif" font-size="11" font-weight="800" fill="#e31337">D</text>
+      <polygon points="15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5" fill="#FF6B35" opacity="0.15"/>
+      <polygon points="15,2 28,8.5 28,21.5 15,28 2,21.5 2,8.5" stroke="#FF6B35" stroke-width="1.5" fill="none"/>
+      <text x="15" y="20" text-anchor="middle" font-family="'Syne',sans-serif" font-size="11" font-weight="800" fill="#FF6B35">H</text>
     </svg>
     <span id="logo-text">Hive<span>Drop</span></span>
   </div>
@@ -426,83 +506,84 @@
       <span id="kc-label">checking…</span>
     </div>
     <button id="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
-      <span id="theme-icon">🌙</span> <span id="theme-label">Dark</span>
+      <span id="theme-icon">☀️</span> <span id="theme-label">Light</span>
     </button>
   </div>
 </div>
 
-<!-- Composer card -->
 <div id="composer">
 
-  <!-- Platform selector -->
   <div id="platform-bar">
     <div id="platform-label">Post to</div>
     <div id="platform-pills" role="group" aria-label="Select platform">
       <button class="platform-pill selected" data-platform="snaps" onclick="selectPlatform(this)" aria-pressed="true">
-        <span class="pill-dot"></span>PeakD Snaps
+        <span class="pill-accent"></span>PeakD Snaps
       </button>
       <button class="platform-pill" data-platform="threads" onclick="selectPlatform(this)" aria-pressed="false">
-        <span class="pill-dot"></span>InLeo Threads
+        <span class="pill-accent"></span>InLeo Threads
       </button>
       <button class="platform-pill" data-platform="waves" onclick="selectPlatform(this)" aria-pressed="false">
-        <span class="pill-dot"></span>Ecency Waves
+        <span class="pill-accent"></span>Ecency Waves
       </button>
     </div>
     <div id="container-status"></div>
   </div>
 
-  <!-- Compose -->
+  <div id="fmt-toolbar" role="toolbar" aria-label="Formatting">
+    <button class="fmt-btn" onclick="fmtWrap('**','**')" title="Bold"><b>B</b></button>
+    <button class="fmt-btn" onclick="fmtWrap('*','*')"   title="Italic"><i>I</i></button>
+    <button class="fmt-btn" onclick="fmtWrap('~~','~~')" title="Strikethrough" style="text-decoration:line-through">S</button>
+    <div class="fmt-sep"></div>
+    <button class="fmt-btn" onclick="fmtLink()"  title="Link">🔗</button>
+    <button class="fmt-btn" onclick="fmtImage()" title="Image">🖼</button>
+    <div id="emoji-wrapper">
+      <button class="fmt-btn" id="emoji-btn" onclick="toggleEmojiPicker()" title="Emoji" aria-expanded="false">😊</button>
+      <div id="emoji-picker" role="dialog" aria-label="Emoji picker">
+        <div id="emoji-categories"></div>
+        <div id="emoji-grid"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="compose-area">
     <textarea
       id="post-body"
-      placeholder="What's happening on Hive?"
+      placeholder="What's on your mind?"
       aria-label="Post body"
       spellcheck="true"
-      maxlength="65535"
     ></textarea>
   </div>
 
-  <!-- Char counter -->
   <div id="char-bar">
     <svg id="char-arc" viewBox="0 0 20 20" aria-hidden="true">
-      <circle cx="10" cy="10" r="8" fill="none" stroke="var(--border)" stroke-width="2"/>
-      <circle id="arc-fill" cx="10" cy="10" r="8" fill="none" stroke="var(--hive-red)"
+      <circle cx="10" cy="10" r="8" fill="none" stroke="var(--border-2)" stroke-width="2"/>
+      <circle id="arc-fill" cx="10" cy="10" r="8" fill="none" stroke="#00D084"
         stroke-width="2" stroke-dasharray="50.27" stroke-dashoffset="50.27"
         stroke-linecap="round" transform="rotate(-90 10 10)"
         style="transition: stroke-dashoffset 0.2s, stroke 0.2s;"/>
     </svg>
-    <span id="char-count">0</span>
+    <span id="char-display">0 / 280</span>
   </div>
 
   <div class="divider"></div>
 
-  <!-- Keychain notice -->
-  <div id="kc-notice" style="margin-top:14px;">
+  <div id="kc-notice">
     Hive Keychain not detected.<br>
     <a href="https://chrome.google.com/webstore/detail/hive-keychain/jcacnejopjdphbnjgfaaobbfafkihpep" target="_blank" rel="noopener">Install for Chrome ↗</a> ·
     <a href="https://addons.mozilla.org/en-US/firefox/addon/hive-keychain/" target="_blank" rel="noopener">Firefox ↗</a>
   </div>
 
-  <!-- TX info -->
   <div id="tx-info">
-    <div>✓ Posted successfully</div>
-    <div style="margin-top:4px;">Tx: <span id="tx-id"></span></div>
-    <div style="margin-top:4px;"><a id="tx-link" href="#" target="_blank" rel="noopener">View on Hive Explorer ↗</a></div>
+    <button id="tx-close" onclick="closeTxInfo()" aria-label="Dismiss">×</button>
+    <div>✓ Posted</div>
+    <div style="margin-top:2px;">Tx: <span id="tx-id"></span></div>
+    <div><a id="tx-link" href="#" target="_blank" rel="noopener">View on Hive Explorer ↗</a></div>
   </div>
 
-  <!-- Bottom row -->
   <div id="bottom-row">
-    <input
-      id="username"
-      class="field-input"
-      placeholder="@yourusername"
-      autocomplete="off"
-      autocorrect="off"
-      spellcheck="false"
-      aria-label="Hive username"
-    >
+    <input id="username" placeholder="@yourusername" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Hive username">
     <button id="drop-btn" onclick="drop()" disabled aria-label="Post to Hive">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <line x1="22" y1="2" x2="11" y2="13"/>
         <polygon points="22 2 15 22 11 13 2 9 22 2"/>
       </svg>
@@ -510,24 +591,18 @@
     </button>
   </div>
 
-</div><!-- /composer -->
+</div>
 
-<!-- Toast -->
 <div id="toast" role="alert" aria-live="assertive"></div>
 
 <script>
 (function() {
 
-  /* ─────────────────────────────────────────────
-     Platform configs
-  ───────────────────────────────────────────── */
   const PLATFORMS = {
     snaps: {
-      label:          'PeakD Snaps',
-      containerAcct:  'peak.snaps',
-      community:      'hive-124838',
-      defaultTag:     'snaps',
-      app:            'peakd/2026.6.6',
+      label: 'PeakD Snaps', containerAcct: 'peak.snaps',
+      community: 'hive-124838', defaultTag: 'snaps',
+      app: 'peakd/2026.6.6', charLimit: 280,
       buildMeta: function(tags) {
         return JSON.stringify({ app: this.app, tags: tags, image: [] });
       },
@@ -535,34 +610,26 @@
       needsCommentOptions: false
     },
     threads: {
-      label:          'InLeo Threads',
-      containerAcct:  'leothreads',
-      community:      'hive-167922',
-      defaultTag:     'leofinance',
-      app:            'leothreads/0.3',
+      label: 'InLeo Threads', containerAcct: 'leothreads',
+      community: 'hive-167922', defaultTag: 'leofinance',
+      app: 'leothreads/0.3', charLimit: 130,
       buildMeta: function(tags, author, permlink) {
         return JSON.stringify({
-          app:           this.app,
-          format:        'markdown',
-          tags:          tags,
+          app: this.app, format: 'markdown', tags: tags,
           canonical_url: 'https://inleo.io/threads/view/' + author + '/' + permlink,
-          isPoll:        false,
-          pollOptions:   {},
-          dimensions:    {}
+          isPoll: false, pollOptions: {}, dimensions: {}
         });
       },
       buildTitle: function(author, body) {
-        let preview = body.substring(0, 50).replace(/"/g, '\u201c').trim();
-        return '@' + author + ' \u201c' + preview + (body.length > 50 ? '\u2026' : '') + '\u201d';
+        let p = body.substring(0, 50).replace(/"/g, '\u201c').trim();
+        return '@' + author + ' \u201c' + p + (body.length > 50 ? '\u2026' : '') + '\u201d';
       },
       needsCommentOptions: true
     },
     waves: {
-      label:          'Ecency Waves',
-      containerAcct:  'ecency.waves',
-      community:      'hive-125125',
-      defaultTag:     'ecency',
-      app:            'ecency/4.4.0-vision',
+      label: 'Ecency Waves', containerAcct: 'ecency.waves',
+      community: 'hive-125125', defaultTag: 'ecency',
+      app: 'ecency/4.4.0-vision', charLimit: 250,
       buildMeta: function(tags) {
         return JSON.stringify({ app: this.app, tags: tags, format: 'markdown+html' });
       },
@@ -571,203 +638,224 @@
     }
   };
 
-  /* ─────────────────────────────────────────────
-     State
-  ───────────────────────────────────────────── */
-  let currentPlatform = 'snaps';
+  let currentPlatform   = 'snaps';
   let containerPermlink = null;
   let containerFetching = false;
-  let toastQueue  = [];
-  let toastActive = false;
-  let toastTimer  = null;
-  let themeMode   = 'auto';
+  let toastQueue = []; let toastActive = false; let toastTimer = null;
+  let themeMode  = 'dark';
+  let emojiOpen  = false;
 
-  /* ─────────────────────────────────────────────
-     Security helpers (same as HiveWrite)
-  ───────────────────────────────────────────── */
+  /* Security */
   function sanitizeUrl(url) {
-    let decoded;
-    try { decoded = decodeURIComponent(url.trim()); } catch(e) { decoded = url.trim(); }
-    if (/^(https?:|ipfs:|hive:)/i.test(decoded)) return escAttr(decoded);
+    let d; try { d = decodeURIComponent(url.trim()); } catch(e) { d = url.trim(); }
+    if (/^(https?:|ipfs:|hive:)/i.test(d)) return escAttr(d);
     return '#blocked';
   }
-
-  function escAttr(str) {
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+  function escAttr(s) {
+    return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+            .replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  /* ─────────────────────────────────────────────
-     Theme toggle
-  ───────────────────────────────────────────── */
+  /* Theme */
   function toggleTheme() {
-    let icon  = document.getElementById('theme-icon');
-    let label = document.getElementById('theme-label');
-    let body  = document.body;
-    if (themeMode === 'auto' || themeMode === 'light') {
+    let body = document.body;
+    if (themeMode === 'dark') {
+      themeMode = 'light';
+      body.classList.add('force-light');
+      document.getElementById('theme-icon').textContent  = '🌙';
+      document.getElementById('theme-label').textContent = 'Dark';
+    } else {
       themeMode = 'dark';
       body.classList.remove('force-light');
-      body.classList.add('force-dark');
-      icon.textContent  = '☀️';
-      label.textContent = 'Light';
-    } else {
-      themeMode = 'light';
-      body.classList.remove('force-dark');
-      body.classList.add('force-light');
-      icon.textContent  = '🌙';
-      label.textContent = 'Dark';
+      document.getElementById('theme-icon').textContent  = '☀️';
+      document.getElementById('theme-label').textContent = 'Light';
     }
   }
 
-  /* Set initial icon based on system preference */
-  (function() {
-    let prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    let icon  = document.getElementById('theme-icon');
-    let label = document.getElementById('theme-label');
-    if (prefersDark) {
-      icon.textContent  = '☀️';
-      label.textContent = 'Light';
-    }
-  })();
-
-  /* ─────────────────────────────────────────────
-     Keychain detection
-  ───────────────────────────────────────────── */
+  /* Keychain */
   function checkKeychain() {
-    let dot    = document.getElementById('kc-dot');
-    let lbl    = document.getElementById('kc-label');
-    let btn    = document.getElementById('drop-btn');
-    let notice = document.getElementById('kc-notice');
-
+    let dot = document.getElementById('kc-dot');
+    let lbl = document.getElementById('kc-label');
+    let btn = document.getElementById('drop-btn');
+    let ntc = document.getElementById('kc-notice');
     if (typeof window.hive_keychain !== 'undefined') {
-      dot.className       = 'status-dot ok';
-      lbl.textContent     = 'Keychain connected';
-      btn.disabled        = false;
-      notice.style.display = 'none';
+      dot.className = 'status-dot ok'; lbl.textContent = 'Keychain connected';
+      btn.disabled = false; ntc.style.display = 'none';
     } else {
-      dot.className       = 'status-dot err';
-      lbl.textContent     = 'Keychain not found';
-      btn.disabled        = true;
-      notice.style.display = 'block';
+      dot.className = 'status-dot err'; lbl.textContent = 'Keychain not found';
+      btn.disabled = true; ntc.style.display = 'block';
     }
   }
-
   setTimeout(checkKeychain, 500);
   setTimeout(checkKeychain, 1500);
   setTimeout(checkKeychain, 3000);
 
-  /* ─────────────────────────────────────────────
-     Platform selector
-  ───────────────────────────────────────────── */
+  /* Platform select */
   function selectPlatform(el) {
     document.querySelectorAll('.platform-pill').forEach(function(b) {
-      b.classList.remove('selected');
-      b.setAttribute('aria-pressed', 'false');
+      b.classList.remove('selected'); b.setAttribute('aria-pressed','false');
     });
-    el.classList.add('selected');
-    el.setAttribute('aria-pressed', 'true');
-    currentPlatform   = el.getAttribute('data-platform');
+    el.classList.add('selected'); el.setAttribute('aria-pressed','true');
+    currentPlatform = el.getAttribute('data-platform');
     containerPermlink = null;
+    closeTxInfo();
+    updateCharCounter(document.getElementById('post-body').value.length);
     fetchContainer();
   }
 
-  /* ─────────────────────────────────────────────
-     Container prefetch
-  ───────────────────────────────────────────── */
+  /* Container fetch */
   function fetchContainer() {
-    let platform = PLATFORMS[currentPlatform];
-    let statusEl = document.getElementById('container-status');
-    statusEl.className = 'loading';
-    statusEl.innerHTML = '<i class="spin">⟳</i> Fetching active container…';
-    containerPermlink  = null;
-    containerFetching  = true;
+    let p  = PLATFORMS[currentPlatform];
+    let st = document.getElementById('container-status');
+    st.className = ''; st.innerHTML = '<span class="spin">⟳</span> Fetching container…';
+    containerPermlink = null; containerFetching = true;
 
     fetch('https://api.hive.blog', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method:  'condenser_api.get_discussions_by_blog',
-        params:  [{ tag: platform.containerAcct, limit: 1 }],
-        id:      1
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc:'2.0', method:'condenser_api.get_discussions_by_blog',
+        params:[{ tag: p.containerAcct, limit: 1 }], id: 1 })
     })
     .then(function(r) { return r.json(); })
     .then(function(data) {
       containerFetching = false;
       if (data.result && data.result.length > 0) {
-        let post = data.result[0];
-        containerPermlink = post.permlink;
-        statusEl.className = 'ok';
-        statusEl.innerHTML = '✓ Container ready · ' + escAttr(post.permlink);
+        containerPermlink = data.result[0].permlink;
+        st.className = 'ok';
+        st.innerHTML = '✓ Ready to post · ' + escAttr(containerPermlink);
       } else {
-        statusEl.className = 'err';
-        statusEl.innerHTML = '✗ Could not find active container';
+        st.className = 'err'; st.innerHTML = '✗ No active container';
       }
     })
     .catch(function(err) {
       containerFetching = false;
-      statusEl.className = 'err';
-      statusEl.innerHTML = '✗ API error — check connection';
-      console.error('[HiveDrop] Container fetch error:', err);
+      st.className = 'err'; st.innerHTML = '✗ API error';
+      console.error('[HiveDrop] Container fetch:', err);
+    });
+  }
+  fetchContainer();
+
+  /* Char counter */
+  document.getElementById('post-body').addEventListener('input', function() {
+    updateCharCounter(this.value.length);
+  });
+
+  function updateCharCounter(len) {
+    let limit = PLATFORMS[currentPlatform].charLimit;
+    let disp  = document.getElementById('char-display');
+    let arc   = document.getElementById('arc-fill');
+    let pct   = Math.min(len / limit, 1);
+    arc.style.strokeDashoffset = 50.27 - (50.27 * pct);
+    disp.textContent = len + ' / ' + limit;
+    if (len > limit)            { disp.className = 'over'; arc.style.stroke = '#FF4444'; }
+    else if (len > limit * 0.85){ disp.className = 'warn'; arc.style.stroke = '#FFB800'; }
+    else                        { disp.className = '';     arc.style.stroke = '#00D084'; }
+  }
+
+  /* Formatting */
+  function getTA() { return document.getElementById('post-body'); }
+
+  function fmtWrap(pre, post) {
+    let ta = getTA(), s = ta.selectionStart, e = ta.selectionEnd;
+    let sel = ta.value.substring(s, e) || 'text';
+    ta.value = ta.value.substring(0,s) + pre + sel + post + ta.value.substring(e);
+    ta.focus(); ta.selectionStart = s + pre.length; ta.selectionEnd = s + pre.length + sel.length;
+    updateCharCounter(ta.value.length);
+  }
+
+  function fmtLink() {
+    let ta = getTA(), s = ta.selectionStart, e = ta.selectionEnd;
+    let sel = ta.value.substring(s, e) || 'link text';
+    let ins = '[' + sel + '](https://)';
+    ta.value = ta.value.substring(0,s) + ins + ta.value.substring(e);
+    ta.focus(); ta.selectionStart = s + sel.length + 3; ta.selectionEnd = s + ins.length - 1;
+    updateCharCounter(ta.value.length);
+  }
+
+  function fmtImage() {
+    let url = prompt('Image URL:'); if (!url) return;
+    let alt = prompt('Alt text (optional):') || '';
+    let ta = getTA(), pos = ta.selectionStart;
+    let ins = '![' + alt + '](' + url + ')';
+    ta.value = ta.value.substring(0,pos) + ins + ta.value.substring(pos);
+    ta.focus(); updateCharCounter(ta.value.length);
+  }
+
+  /* Emoji */
+  const EMOJI_CATS = [
+    { label:'Smileys', emojis:['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😇','🥰','😍','🤩','😘','😋','😛','😜','🤪','😝','🤑','🤗','🤔','😐','😑','😶','😏','😒','🙄','😬','😌','😔','😪','😷','🤒','🤕','🥴','😵','🤯','🤠','🥳','😎','🤓','😕','😟','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😩','😫','😤','😡','😠','🤬','😈','👿','💀','☠️'] },
+    { label:'People',  emojis:['👋','🤚','🖐','✋','🖖','👌','✌️','🤞','🤟','🤘','👍','👎','✊','👊','👏','🙌','🙏','💪','👀','👅','👄','💋','🧠','👶','🧒','👦','👧','🧑','👱','👨','🧔','👩','🧓','👴','👵','🙍','🙎','🙅','🙆','💁','🙋','🧏','🙇','🤦','🤷','👮','🕵️','💂','🥷','👷','🤴','👸','👳','👲','🧕','🤵','👰','🤰','🤱','👼','🎅','🤶','🧙','🧝','🧛','🧟','🧞','🧜','🧚','🧑‍🤝‍🧑','👫','👬','👭','💏','💑','👨‍👩‍👦','👨‍👩‍👧'] },
+    { label:'Nature',  emojis:['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐴','🦄','🐝','🦋','🐌','🐞','🐜','🦗','🐢','🐍','🦎','🦖','🦕','🐙','🦑','🐬','🐳','🐋','🦈','🌸','🌺','🌹','🌷','🌱','🌲','🌳','🌴','🍀','🍁','🍂','🍃','🌿','🍄','🌾','💐','🌻','🌞','⭐','🌟','💫','✨','⚡','🔥','💥','❄️','🌊','🌈','☀️','🌤','⛅','🌧','⛈','🌨'] },
+    { label:'Food',    emojis:['🍎','🍊','🍋','🍇','🍓','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🥑','🍆','🥦','🌽','🥕','🥐','🍞','🥖','🧀','🥚','🍳','🥞','🧇','🥓','🍗','🍖','🌭','🍔','🍟','🍕','🌮','🌯','🍜','🍝','🍛','🍲','🍣','🍱','🥟','🍙','🍚','🧁','🍰','🎂','🍭','🍬','🍫','🍿','🍩','🍪','🧃','🥤','☕','🍵','🧋','🍺','🍻','🥂','🍷','🥃','🍸','🍹'] },
+    { label:'Travel',  emojis:['🚀','✈️','🚂','🚗','🚕','🚙','🚌','🚎','🏎','🏍','🛵','🚲','🛴','⚓','⛵','🚤','🛥','🚢','🛩','🛫','🛬','🪂','🚁','🛸','🌍','🌎','🌏','🗺','🧭','🏔','⛰','🌋','🏕','🏖','🏜','🏝','🏞','🏟','🏛','🏗','🏘','🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🏰','💒','🗼','🗽','⛪','🕌','⛩','🕋','⛲','⛺','🌁','🌃','🏙','🌄','🌅','🌆','🌇','🌉','🎠','🎡','🎢','💈','🎪'] },
+    { label:'Symbols', emojis:['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💯','🔥','✅','❌','⭕','🛑','⛔','📛','🚫','💢','♨️','🔞','📵','❗','❕','❓','❔','‼️','⁉️','♻️','✔️','🆗','🆕','🆒','🆓','🆙','🔝','🔚','🔙','🔛','🔜','▶️','⏸','⏹','⏺','⏭','⏮','⏩','⏪','🔀','🔁','🔂','➕','➖','➗','✖️','💲','💱','™️','©️','®️','🎵','🎶','🔔','🔕','🔇','📢','📣','💬','💭','🗯','💤','🔅','🔆','📶','🔱','⚜️','🔰'] }
+  ];
+
+  function buildEmojiPicker() {
+    let catEl = document.getElementById('emoji-categories');
+    EMOJI_CATS.forEach(function(cat, i) {
+      let btn = document.createElement('button');
+      btn.className = 'emoji-cat-btn' + (i === 0 ? ' active' : '');
+      btn.textContent = cat.label;
+      btn.onclick = function() {
+        document.querySelectorAll('.emoji-cat-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        renderEmojiGrid(i);
+      };
+      catEl.appendChild(btn);
+    });
+    renderEmojiGrid(0);
+  }
+
+  function renderEmojiGrid(idx) {
+    let grid = document.getElementById('emoji-grid');
+    grid.innerHTML = '';
+    EMOJI_CATS[idx].emojis.forEach(function(emoji) {
+      let btn = document.createElement('button');
+      btn.className = 'emoji-cell'; btn.textContent = emoji; btn.title = emoji;
+      btn.onclick = function() { insertEmoji(emoji); };
+      grid.appendChild(btn);
     });
   }
 
-  /* Fetch container for default platform on load */
-  fetchContainer();
-
-  /* ─────────────────────────────────────────────
-     Character counter
-  ───────────────────────────────────────────── */
-  const SOFT_LIMIT = 280;
-  const HARD_LIMIT = 500;
-
-  document.getElementById('post-body').addEventListener('input', function() {
-    updateCharCount(this.value.length);
-  });
-
-  function updateCharCount(len) {
-    let countEl  = document.getElementById('char-count');
-    let arcEl    = document.getElementById('arc-fill');
-    let circumf  = 50.27;
-
-    countEl.textContent = len;
-
-    let pct = Math.min(len / HARD_LIMIT, 1);
-    let offset = circumf - (circumf * pct);
-    arcEl.style.strokeDashoffset = offset;
-
-    if (len > HARD_LIMIT) {
-      countEl.className = 'over';
-      arcEl.style.stroke = '#e31337';
-    } else if (len > SOFT_LIMIT) {
-      countEl.className = 'warn';
-      arcEl.style.stroke = '#b56a00';
-    } else {
-      countEl.className = '';
-      arcEl.style.stroke = '#e31337';
-    }
+  function toggleEmojiPicker() {
+    emojiOpen = !emojiOpen;
+    document.getElementById('emoji-picker').classList.toggle('open', emojiOpen);
+    document.getElementById('emoji-btn').setAttribute('aria-expanded', emojiOpen);
   }
 
-  /* ─────────────────────────────────────────────
-     Toast
-  ───────────────────────────────────────────── */
+  function insertEmoji(emoji) {
+    let ta = getTA(), pos = ta.selectionStart;
+    ta.value = ta.value.substring(0,pos) + emoji + ta.value.substring(pos);
+    ta.focus(); ta.selectionStart = ta.selectionEnd = pos + emoji.length;
+    updateCharCounter(ta.value.length);
+  }
+
+  document.addEventListener('click', function(e) {
+    if (emojiOpen && !document.getElementById('emoji-wrapper').contains(e.target)) {
+      emojiOpen = false;
+      document.getElementById('emoji-picker').classList.remove('open');
+      document.getElementById('emoji-btn').setAttribute('aria-expanded','false');
+    }
+  });
+
+  buildEmojiPicker();
+
+  /* TX dismiss */
+  function closeTxInfo() {
+    document.getElementById('tx-info').style.display = 'none';
+  }
+
+  /* Toast */
   function toast(msg, type) {
     toastQueue.push({ msg: msg, type: type || '' });
     if (!toastActive) processToastQueue();
   }
-
   function processToastQueue() {
     if (toastQueue.length === 0) { toastActive = false; return; }
     toastActive = true;
     let item = toastQueue.shift();
     let t = document.getElementById('toast');
-    t.textContent = item.msg;
-    t.className   = 'show ' + item.type;
+    t.textContent = item.msg; t.className = 'show ' + item.type;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function() {
       t.className = '';
@@ -775,135 +863,93 @@
     }, 3500);
   }
 
-  /* ─────────────────────────────────────────────
-     Slugify / permlink
-  ───────────────────────────────────────────── */
+  /* Permlink */
   function makePermlink(platform) {
-    /* Mirrors platform naming conventions from real TX data */
-    if (platform === 'snaps')   return 're-peaksnaps-' + Date.now().toString(36);
+    if (platform === 'snaps')   return 're-peaksnaps-'  + Date.now().toString(36);
     if (platform === 'threads') return 're-leothreads-' + Date.now().toString(36);
-    if (platform === 'waves')   return 'wave-' + new Date().toISOString().replace(/[-:T.Z]/g,'').substring(0,14) + Date.now().toString(36).substring(-4);
+    if (platform === 'waves')   return 'wave-' + new Date().toISOString().replace(/[-:T.Z]/g,'').substring(0,14) + Date.now().toString(36).slice(-4);
     return 'drop-' + Date.now().toString(36);
   }
 
-  /* ─────────────────────────────────────────────
-     Drop (publish)
-  ───────────────────────────────────────────── */
+  /* Drop */
   function drop() {
     checkKeychain();
-
-    let username = document.getElementById('username').value.trim().replace(/^@/, '');
+    let username = document.getElementById('username').value.trim().replace(/^@/,'');
     let body     = document.getElementById('post-body').value.trim();
+    let platform = PLATFORMS[currentPlatform];
 
-    if (!username)          { toast('Enter your Hive username', 'error'); return; }
-    if (!body)              { toast('Write something first', 'error'); return; }
-    if (body.length > HARD_LIMIT) { toast('Post is too long (' + body.length + ' chars)', 'error'); return; }
-
-    if (typeof window.hive_keychain === 'undefined') {
-      toast('Hive Keychain not found', 'error'); return;
-    }
-
+    if (!username)                        { toast('Enter your Hive username', 'error'); return; }
+    if (!body)                            { toast('Write something first', 'error'); return; }
+    if (body.length > platform.charLimit) { toast('Too long for ' + platform.label + ' (' + body.length + '/' + platform.charLimit + ')', 'error'); return; }
+    if (typeof window.hive_keychain === 'undefined') { toast('Hive Keychain not found', 'error'); return; }
     if (!containerPermlink) {
-      if (containerFetching) {
-        toast('Container is still loading — try again in a moment', 'error');
-      } else {
-        toast('No active container found — try refreshing the platform', 'error');
-        fetchContainer();
-      }
+      toast(containerFetching ? 'Container loading — try again shortly' : 'No container found — retrying…', 'error');
+      if (!containerFetching) fetchContainer();
       return;
     }
 
-    let platform = PLATFORMS[currentPlatform];
     let permlink = makePermlink(currentPlatform);
     let tags     = [platform.defaultTag];
     let title    = platform.buildTitle(username, body);
     let meta     = platform.buildMeta(tags, username, permlink);
 
-    let operations = [
-      ['comment', {
-        parent_author:   platform.containerAcct,
-        parent_permlink: containerPermlink,
-        author:          username,
-        permlink:        permlink,
-        title:           title,
-        body:            body,
-        json_metadata:   meta
-      }]
-    ];
+    let ops = [['comment', {
+      parent_author: platform.containerAcct, parent_permlink: containerPermlink,
+      author: username, permlink: permlink, title: title, body: body, json_metadata: meta
+    }]];
 
     if (platform.needsCommentOptions) {
-      operations.push(['comment_options', {
-        author:              username,
-        permlink:            permlink,
-        max_accepted_payout: '1000000.000 HBD',
-        percent_hbd:         10000,
-        allow_votes:         true,
-        allow_curation_rewards: true,
-        extensions:          []
+      ops.push(['comment_options', {
+        author: username, permlink: permlink,
+        max_accepted_payout: '1000000.000 HBD', percent_hbd: 10000,
+        allow_votes: true, allow_curation_rewards: true, extensions: []
       }]);
     }
 
-    /* UI: loading state */
     let btn = document.getElementById('drop-btn');
-    btn.disabled = true;
-    btn.innerHTML =
-      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">' +
-      '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>' +
-      '</svg> Signing…';
+    btn.disabled  = true;
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Signing…';
 
-    /* 35s timeout — same as HiveWrite */
-    let broadcastTimeout = setTimeout(function() {
-      btn.disabled = false;
-      btn.innerHTML = dropBtnHTML();
+    let timeout = setTimeout(function() {
+      btn.disabled = false; btn.innerHTML = dropBtnHTML();
       toast('Request timed out — try again', 'error');
     }, 35000);
 
-    window.hive_keychain.requestBroadcast(
-      username,
-      operations,
-      'posting',
-      function(response) {
-        clearTimeout(broadcastTimeout);
-        btn.disabled = false;
-        btn.innerHTML = dropBtnHTML();
-
-        if (response.success) {
-          let txId   = (response.result && response.result.id) ? response.result.id : '';
-          let txInfo = document.getElementById('tx-info');
-          let txIdEl = document.getElementById('tx-id');
-          let txLink = document.getElementById('tx-link');
-
-          if (txId) {
-            txIdEl.textContent = txId.substring(0, 20) + '…';
-            txLink.href = 'https://hivehub.dev/tx/' + txId;
-          }
-
-          txInfo.style.display = 'block';
-          toast('✓ Dropped!  @' + username + '/' + permlink, 'success');
-
-          /* Clear the compose area and refresh container */
-          document.getElementById('post-body').value = '';
-          updateCharCount(0);
-          fetchContainer();
-        } else {
-          let errMsg = response.message || response.error || 'Transaction rejected';
-          toast('Error: ' + errMsg, 'error');
-          console.error('[HiveDrop] Broadcast error:', response);
+    window.hive_keychain.requestBroadcast(username, ops, 'posting', function(response) {
+      clearTimeout(timeout);
+      btn.disabled = false; btn.innerHTML = dropBtnHTML();
+      if (response.success) {
+        let txId = (response.result && response.result.id) ? response.result.id : '';
+        let ti = document.getElementById('tx-info');
+        if (txId) {
+          document.getElementById('tx-id').textContent = txId.substring(0,20) + '…';
+          document.getElementById('tx-link').href = 'https://hivehub.dev/tx/' + txId;
         }
+        ti.style.display = 'block';
+        toast('✓ Dropped! @' + username + '/' + permlink, 'success');
+        document.getElementById('post-body').value = '';
+        updateCharCounter(0);
+        fetchContainer();
+      } else {
+        let err = response.message || response.error || 'Transaction rejected';
+        toast('Error: ' + err, 'error');
+        console.error('[HiveDrop] Broadcast error:', response);
       }
-    );
+    });
   }
 
   function dropBtnHTML() {
-    return '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-      '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' +
-      '</svg> Drop it';
+    return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Drop it';
   }
 
-  /* Expose to global scope for onclick attributes */
-  window.toggleTheme    = toggleTheme;
-  window.selectPlatform = selectPlatform;
-  window.drop           = drop;
+  window.toggleTheme      = toggleTheme;
+  window.selectPlatform   = selectPlatform;
+  window.drop             = drop;
+  window.fmtWrap          = fmtWrap;
+  window.fmtLink          = fmtLink;
+  window.fmtImage         = fmtImage;
+  window.toggleEmojiPicker = toggleEmojiPicker;
+  window.closeTxInfo      = closeTxInfo;
 
 })();
 </script>
