@@ -350,6 +350,20 @@ body {
 #char-display.warn { color: var(--warn); }
 #char-display.over { color: var(--danger); font-weight: 600; }
 
+#clear-btn {
+  margin-right: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 9px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-3);
+  transition: all 0.12s;
+}
+#clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
 #char-arc { width: 18px; height: 18px; flex-shrink: 0; }
 
 .divider { height: 1px; background: var(--border); }
@@ -555,6 +569,7 @@ body.force-light {
   </div>
 
   <div id="char-bar">
+    <button id="clear-btn" onclick="clearBody()" title="Clear post">Clear</button>
     <svg id="char-arc" viewBox="0 0 20 20" aria-hidden="true">
       <circle cx="10" cy="10" r="8" fill="none" stroke="var(--border-2)" stroke-width="2"/>
       <circle id="arc-fill" cx="10" cy="10" r="8" fill="none" stroke="#00D084"
@@ -940,8 +955,6 @@ body.force-light {
         }
         ti.style.display = 'block';
         toast('✓ Dropped! @' + username + '/' + permlink, 'success');
-        document.getElementById('post-body').value = '';
-        updateCharCounter(0);
         fetchContainer();
       } else {
         let err = response.message || response.error || 'Transaction rejected';
@@ -949,6 +962,12 @@ body.force-light {
         console.error('[HiveDrop] Broadcast error:', response);
       }
     });
+  }
+
+  function clearBody() {
+    document.getElementById('post-body').value = '';
+    updateCharCounter(0);
+    document.getElementById('post-body').focus();
   }
 
   function dropBtnHTML() {
@@ -963,6 +982,7 @@ body.force-light {
   window.fmtImage         = fmtImage;
   window.toggleEmojiPicker = toggleEmojiPicker;
   window.closeTxInfo      = closeTxInfo;
+  window.clearBody        = clearBody;
 
 })();
 </script>
