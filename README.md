@@ -12,6 +12,12 @@ Hive's short-form platforms — PeakD Snaps, InLeo Threads, and Ecency Waves —
 
 ---
 
+## Screenshots
+
+| Light Mode | Dark Mode |
+|---|---|
+| ![Light mode](screenshots/light-mode.png) | ![Dark mode](screenshots/dark-mode.png) |
+
 ## Features
 
 - **Three platforms in one tool** — PeakD Snaps, InLeo Threads, and Ecency Waves
