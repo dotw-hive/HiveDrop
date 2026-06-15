@@ -788,11 +788,14 @@ body.force-light {
   }
 
   function fmtLink() {
-    let ta = getTA(), s = ta.selectionStart, e = ta.selectionEnd;
-    let sel = ta.value.substring(s, e) || 'link text';
-    let ins = '[' + sel + '](https://)';
-    ta.value = ta.value.substring(0,s) + ins + ta.value.substring(e);
-    ta.focus(); ta.selectionStart = s + sel.length + 3; ta.selectionEnd = s + ins.length - 1;
+    let url = prompt('URL:'); if (!url) return;
+    let ta  = getTA(), s = ta.selectionStart, e = ta.selectionEnd;
+    let sel = ta.value.substring(s, e).trim();
+    let linkText = sel || prompt('Link text:') || url;
+    let ins = '[' + linkText + '](' + url + ')';
+    ta.value = ta.value.substring(0, s) + ins + ta.value.substring(e);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = s + ins.length;
     updateCharCounter(ta.value.length);
   }
 
