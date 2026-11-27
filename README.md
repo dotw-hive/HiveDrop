@@ -29,7 +29,7 @@ Hive's short-form platforms — PeakD Snaps, InLeo Threads, and Ecency Waves —
 - **Emoji picker** — built-in, no CDN required
 - **Light and dark mode** — ships dark, toggleable
 - **Single file, no dependencies** — one HTML file, no npm, no build step, no framework
-- **Transaction link** — every successful post links to [hive.ausbit.dev](https://hive.ausbit.dev) for verification
+- **Transaction link** — every successful post links to [banksia.io](https://banksia.io) for verification
 
 ---
 
